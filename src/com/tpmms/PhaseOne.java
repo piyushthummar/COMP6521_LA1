@@ -24,7 +24,7 @@ public class PhaseOne {
 	private static String filePath, destinationFolder;
 	ArrayList<String> subFilesPath;
 	ArrayList<String> dataList;
-	public int block_size = 0, current_subFile = 0;
+	public static int current_subFile = 0;
 	
 	/**
 	 * 
@@ -45,21 +45,39 @@ public class PhaseOne {
 			br = new BufferedReader(fr);
 			sc = new Scanner(br); 
 			
-			long availableMemory = Runtime.getRuntime().maxMemory() - Runtime.getRuntime().totalMemory() +
+			long availableMemory;
+			long count = 0;
+			availableMemory = Runtime.getRuntime().maxMemory() - Runtime.getRuntime().totalMemory() +
 					Runtime.getRuntime().freeMemory();
-			
+			double maxTuples = Math.floor(availableMemory/100);
+			dataList = new ArrayList<>();
+//			System.out.println(maxTuples);
 			while(sc.hasNextLine()) {
-				dataList = new ArrayList<>();
-				while(true) {
-					dataList.add(sc.nextLine());
-					System.out.println("Available memory: " + availableMemory);
-					if(availableMemory < sc.nextLine().length() || !(sc.hasNextLine())) {
+				
+				for(int index=0; index<maxTuples; index++) {
+					String line = sc.nextLine();
+					count++;
+					dataList.add(line);
+//					System.out.println("tuple-count:" + index + ", tuple-size : " + line.getBytes().length + ", available-memory : "+ Runtime.getRuntime().freeMemory() + ", total-tuple:" + count);
+					if(!sc.hasNextLine() || Runtime.getRuntime().freeMemory() < (Runtime.getRuntime().maxMemory() * 0.08)) {
 						break;
 					}
 				}
+//				while(true) {
+//					dataList.add(sc.nextLine());
+//					availableMemory = Runtime.getRuntime().maxMemory() - Runtime.getRuntime().totalMemory() +
+//							Runtime.getRuntime().freeMemory();
+//					System.out.println("Available memory: " + availableMemory + ", count=" + count++);
+//					if(availableMemory < sc.nextLine().length() || !(sc.hasNextLine())) {
+//						System.out.println("Available memory before break : " + availableMemory);
+//						break;
+//					}
+//				}
 				System.out.println("Datalist Size" + dataList.size());
 				Collections.sort(dataList);
 				createSubLists(dataList);
+				dataList.clear();
+				Runtime.getRuntime().gc();
 			}
 			fr.close();
 			br.close();
@@ -87,6 +105,7 @@ public class PhaseOne {
 			for(String tuple : data) {
 				pw.println(tuple);
 			}
+			System.out.println("File " + current_subFile + " generated");
 			pw.close();
 		} catch (FileNotFoundException e) {
 			current_subFile--;
