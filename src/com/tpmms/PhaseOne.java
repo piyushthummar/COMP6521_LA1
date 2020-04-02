@@ -10,9 +10,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Scanner;
 
 /**
@@ -24,8 +22,7 @@ public class PhaseOne {
 	private static String filePath, destinationFolder;
 	ArrayList<String> subFilesPath;
 	ArrayList<String> dataList;
-	public static int current_subFile = 0;
-	
+	public static int current_subFile = TPMMS_Main.totalSubFiles;
 	/**
 	 * 
 	 */
@@ -35,7 +32,8 @@ public class PhaseOne {
 		subFilesPath = new ArrayList<>();
 	}
 
-	public void extractDetails() {
+	public long extractDetails() {
+		long count = 0;
 		System.out.println("extracting sublists...");
 		FileReader fr = null;
 		BufferedReader br = null;
@@ -46,7 +44,7 @@ public class PhaseOne {
 			sc = new Scanner(br); 
 			
 			long availableMemory;
-			long count = 0;
+			
 			availableMemory = Runtime.getRuntime().maxMemory() - Runtime.getRuntime().totalMemory() +
 					Runtime.getRuntime().freeMemory();
 			double maxTuples = Math.floor(availableMemory/100);
@@ -73,16 +71,17 @@ public class PhaseOne {
 //						break;
 //					}
 //				}
-				System.out.println("Datalist Size" + dataList.size());
+//				System.out.print("Datalist Size is " + dataList.size() + " for ");
 				Collections.sort(dataList);
 				createSubLists(dataList);
 				dataList.clear();
 				Runtime.getRuntime().gc();
+				TPMMS_Main.totalSubFiles = current_subFile;
 			}
 			fr.close();
 			br.close();
 			sc.close();
-				
+			Runtime.getRuntime().gc();	
 		}
 		catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -90,8 +89,7 @@ public class PhaseOne {
 		catch (IOException e1) {
 			e1.printStackTrace();
 		}
-		
-		
+		return count;
 	}
 
 	public boolean createSubLists(ArrayList<String> data) {
@@ -105,7 +103,7 @@ public class PhaseOne {
 			for(String tuple : data) {
 				pw.println(tuple);
 			}
-			System.out.println("File " + current_subFile + " generated");
+//			System.out.println("file " + current_subFile + " is generated");
 			pw.close();
 		} catch (FileNotFoundException e) {
 			current_subFile--;
